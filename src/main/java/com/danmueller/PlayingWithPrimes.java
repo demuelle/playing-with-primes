@@ -85,40 +85,88 @@ public class PlayingWithPrimes {
 
     private static void doCheckPrime() {
         int num = getPositiveInt("Enter a number to see if it's prime: ", "  Please enter a positive integer.");
-        checkPrime(num);
+        checkPrime(num, true);
     }
 
     private static void doBuildPrimeList() {
+        int min = getPositiveInt("Enter the start number: ", "  Please enter a positive integer.");
+        int max = getPositiveInt("Enter the end number: ", "  Please enter a positive integer.");
+        if (min > max) { int tmp = min; min = max; max = tmp; }
+        buildPrimeList(min, max);
     }
 
     private static void doCheckSemiPrime() {
+        int num = getPositiveInt("Enter a number to see if it's semi-prime: ", "  Please enter a positive integer.");
+        checkSemiPrime(num, true);
     }
 
     private static void doBuildSemiPrimeList() {
+        int min = getPositiveInt("Enter the start number: ", "  Please enter a positive integer.");
+        int max = getPositiveInt("Enter the end number: ", "  Please enter a positive integer.");
+        if (min > max) { int tmp = min; min = max; max = tmp; }
+        buildSemiPrimeList(min, max, true);
+    }
+
+    private static List<Integer> buildSemiPrimeList(int min, int max, boolean displayOutput) {
+        List<Integer> returnVal = new ArrayList<>();
+        for (int i = min; i <= max; i++) {
+            if (checkSemiPrime(i, displayOutput)) {
+                returnVal.add(i);
+            }
+        }
+        return returnVal;
+    }
+
+    private static boolean checkSemiPrime(int theNum, boolean displayOutput) {
+        boolean returnVal = false;
+        if (theNum != 2 && theNum % 2 == 0 && checkPrime(theNum/2)) {
+            if (displayOutput)
+                System.out.println(theNum + " is semi-prime (" + theNum + " = " + theNum / 2 + " x " + 2 + ")");
+            returnVal = true;
+        } else {
+            for (int i = 3; i <= Math.sqrt(theNum); i+=2) {
+                if (theNum % i == 0) {
+                    if (checkPrime(theNum / i) && checkPrime(i)) {
+                        if (displayOutput)
+                            System.out.println(theNum + " is semi-prime (" + theNum + " = " + theNum / i + " x " + i + ")");
+                        returnVal = true;
+                    }
+                    break;
+                }
+            }
+        }
+//        if (!returnVal && displayOutput) System.out.println(theNum + " is not semi-prime.");
+        return returnVal;
     }
 
     private static boolean checkPrime(int theNum) {
+        return checkPrime(theNum, false);
+    }
+
+    private static boolean checkPrime(int theNum, boolean displayOutput) {
         if (theNum == 1) {
-            System.out.println("1 is not prime because it only has one factor (1).\n");
+            if (displayOutput) System.out.println("1 is not prime because it only has one factor (1).\n");
             return false;
         }
         boolean returnVal = true;
-        int divisible = 2;
+        int factor = 2;
         if (theNum % 2 != 0) {
             for (int i = 3; i <= Math.sqrt(theNum); i+=2) {
                 if (theNum % i == 0) {
-                    divisible = i;
+                    factor = i;
                     returnVal = false;
                     break;
                 }
             }
         } else {
-            returnVal = false;
+            returnVal = theNum == 2;
         }
-        if (!returnVal) {
-            System.out.println(theNum + " is not prime. (" + divisible + ")\n");
-        } else {
-            System.out.println("" + theNum + " is prime.\n");
+        if (displayOutput) {
+            if (!returnVal) {
+                System.out.println(theNum + " is not prime. (" + factor + ")\n");
+            } else {
+                System.out.println(theNum + " is prime.\n");
+            }
         }
 
         return returnVal;
