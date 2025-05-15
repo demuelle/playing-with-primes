@@ -2,8 +2,11 @@ package com.danmueller;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class PlayingWithPrimes {
+    private static Scanner scan = new Scanner(System.in);
+
     public static void main(String[] args) {
 //        System.out.println("Hello, World!");
 //        System.out.println(args);
@@ -11,19 +14,94 @@ public class PlayingWithPrimes {
 //            System.out.println(a);
 //            checkPrime(Integer.parseInt(a));
 //        }
-        int min = 1;
-        int max = Integer.parseInt(args[0]);
-        if (args.length > 1) {
-            min = Integer.parseInt(args[0]);
-            max = Integer.parseInt(args[1]);
-        }
+        List<String> menuOptions = new ArrayList<>();
+        menuOptions.add("Check if a number is prime.");
+        menuOptions.add("Find prime numbers between x and y.");
+        menuOptions.add("Check if a number is semiprime.");
+        menuOptions.add("Find semiprime numbers between x and y.");
 
-        List<Integer> primes = buildPrimeList(min, max);
-        displayPrimeStats(max, primes);
-//        printList(primes);
+        if (args.length == 0) {
+            while (true) {
+                for (int i = 0; i < menuOptions.size(); i++) {
+                    System.out.println((i + 1) + ". " + menuOptions.get(i));
+                }
+                System.out.println((menuOptions.size() + 1) + ". Exit.");
+                int choice = getPositiveInt("\nWhaddyawant? ", "  Enter a number between 1 and " + (menuOptions.size() + 1));
+
+                switch (choice) {
+                    case 1:
+                        doCheckPrime();
+                        break;
+                    case 2:
+                        doBuildPrimeList();
+                        break;
+                    case 3:
+                        doCheckSemiPrime();
+                        break;
+                    case 4:
+                        doBuildSemiPrimeList();
+                        break;
+                    case 5:
+                        return;
+                    default:
+                        System.out.println("  It's a number between 1 and " + (menuOptions.size() + 1) + "\n");
+                }
+            }
+        } else {
+            int min = 1;
+            int max = Integer.parseInt(args[0]);
+            if (args.length > 1) {
+                min = Integer.parseInt(args[0]);
+                max = Integer.parseInt(args[1]);
+            }
+            System.out.println("Checking for primes from " + min + " to " + max);
+
+            List<Integer> primes = buildPrimeList(min, max);
+            displayPrimeStats(max, primes);
+        }
+    //        printList(primes);
+    }
+
+    private static int getPositiveInt(String message, String badInputMessage) {
+        int returnVal = -1;
+
+        while (true) {
+            System.out.print(message);
+
+            try {
+                returnVal = Integer.parseInt(scan.nextLine());
+                if (returnVal < 1) {
+                    System.out.println(badInputMessage);
+                } else {
+                    return returnVal;
+                }
+            } catch (NumberFormatException nfe) {
+                System.out.println(badInputMessage);
+            }
+        }
+    }
+
+
+
+    private static void doCheckPrime() {
+        int num = getPositiveInt("Enter a number to see if it's prime: ", "  Please enter a positive integer.");
+        checkPrime(num);
+    }
+
+    private static void doBuildPrimeList() {
+    }
+
+    private static void doCheckSemiPrime() {
+    }
+
+    private static void doBuildSemiPrimeList() {
     }
 
     private static boolean checkPrime(int theNum) {
+        if (theNum == 1) {
+            System.out.println("1 is not prime because it only has one factor (1).\n");
+            return false;
+        }
         boolean returnVal = true;
         int divisible = 2;
         if (theNum % 2 != 0) {
@@ -38,9 +116,9 @@ public class PlayingWithPrimes {
             returnVal = false;
         }
         if (!returnVal) {
-            System.out.println(theNum + " is not prime. (" + divisible + ")");
+            System.out.println(theNum + " is not prime. (" + divisible + ")\n");
         } else {
-            System.out.println("" + theNum + " is prime.");
+            System.out.println("" + theNum + " is prime.\n");
         }
 
         return returnVal;
