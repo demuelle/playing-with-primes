@@ -1,8 +1,9 @@
 package com.danmueller;
 import java.lang.Math;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+import java.util.AbstractMap.*;
+import com.danmueller.Verbosity;
+import java.util.function.Function;
 
 public class PlayingWithPrimes {
     private static Scanner scan = new Scanner(System.in);
@@ -14,37 +15,26 @@ public class PlayingWithPrimes {
 //            System.out.println(a);
 //            checkPrime(Integer.parseInt(a));
 //        }
-        List<String> menuOptions = new ArrayList<>();
-        menuOptions.add("Check if a number is prime.");
-        menuOptions.add("Find prime numbers between x and y.");
-        menuOptions.add("Check if a number is semiprime.");
-        menuOptions.add("Find semiprime numbers between x and y.");
+        List<Map.Entry<String, Runnable>> menuOptions = new ArrayList<>();
+        menuOptions.add(new SimpleImmutableEntry<>("Check if a number is prime.", PlayingWithPrimes::doCheckPrime));
+        menuOptions.add(new SimpleImmutableEntry<>("Find prime numbers between x and y.", PlayingWithPrimes::doBuildPrimeList));
+        menuOptions.add(new SimpleImmutableEntry<>("Check if a number is semiprime.", PlayingWithPrimes::doCheckSemiPrime));
+        menuOptions.add(new SimpleImmutableEntry<>("Find semiprime numbers between x and y.", PlayingWithPrimes::doBuildSemiPrimeList));
 
         if (args.length == 0) {
             while (true) {
                 for (int i = 0; i < menuOptions.size(); i++) {
-                    System.out.println((i + 1) + ". " + menuOptions.get(i));
+                    System.out.println((i + 1) + ". " + menuOptions.get(i).getKey());
                 }
                 System.out.println((menuOptions.size() + 1) + ". Exit.");
                 int choice = getPositiveInt("\nWhaddyawant? ", "  Enter a number between 1 and " + (menuOptions.size() + 1));
 
-                switch (choice) {
-                    case 1:
-                        doCheckPrime();
-                        break;
-                    case 2:
-                        doBuildPrimeList();
-                        break;
-                    case 3:
-                        doCheckSemiPrime();
-                        break;
-                    case 4:
-                        doBuildSemiPrimeList();
-                        break;
-                    case 5:
-                        return;
-                    default:
-                        System.out.println("  It's a number between 1 and " + (menuOptions.size() + 1) + "\n");
+                if (choice > 0 && choice <= menuOptions.size()) {
+                    menuOptions.get(choice - 1).getValue().run();
+                } else if (choice == menuOptions.size() + 1) {
+                    return;
+                } else {
+                    System.out.println("  It's a number between 1 and " + (menuOptions.size() + 1) + "\n");
                 }
             }
         } else {
@@ -56,10 +46,10 @@ public class PlayingWithPrimes {
             }
             System.out.println("Checking for primes from " + min + " to " + max);
 
-            List<Integer> primes = buildPrimeList(min, max);
+            List<Integer> primes = buildPrimeList(min, max, Verbosity.STANDARD);
             displayPrimeStats(max, primes);
         }
-    //        printList(primes);
+        //        printList(primes);
     }
 
     private static int getPositiveInt(String message, String badInputMessage) {
@@ -85,29 +75,29 @@ public class PlayingWithPrimes {
 
     private static void doCheckPrime() {
         int num = getPositiveInt("Enter a number to see if it's prime: ", "  Please enter a positive integer.");
-        checkPrime(num, true);
+        checkPrime(num, Verbosity.STANDARD);
     }
 
     private static void doBuildPrimeList() {
         int min = getPositiveInt("Enter the start number: ", "  Please enter a positive integer.");
         int max = getPositiveInt("Enter the end number: ", "  Please enter a positive integer.");
         if (min > max) { int tmp = min; min = max; max = tmp; }
-        buildPrimeList(min, max);
+        buildPrimeList(min, max, Verbosity.STANDARD);
     }
 
     private static void doCheckSemiPrime() {
         int num = getPositiveInt("Enter a number to see if it's semi-prime: ", "  Please enter a positive integer.");
-        checkSemiPrime(num, true);
+        checkSemiPrime(num, Verbosity.VERBOSE);
     }
 
     private static void doBuildSemiPrimeList() {
         int min = getPositiveInt("Enter the start number: ", "  Please enter a positive integer.");
         int max = getPositiveInt("Enter the end number: ", "  Please enter a positive integer.");
         if (min > max) { int tmp = min; min = max; max = tmp; }
-        buildSemiPrimeList(min, max, true);
+        buildSemiPrimeList(min, max, Verbosity.STANDARD);
     }
 
-    private static List<Integer> buildSemiPrimeList(int min, int max, boolean displayOutput) {
+    private static List<Integer> buildSemiPrimeList(int min, int max, Verbosity displayOutput) {
         List<Integer> returnVal = new ArrayList<>();
         for (int i = min; i <= max; i++) {
             if (checkSemiPrime(i, displayOutput)) {
@@ -117,35 +107,37 @@ public class PlayingWithPrimes {
         return returnVal;
     }
 
-    private static boolean checkSemiPrime(int theNum, boolean displayOutput) {
+    private static boolean checkSemiPrime(int theNum, Verbosity displayOutput) {
         boolean returnVal = false;
         if (theNum != 2 && theNum % 2 == 0 && checkPrime(theNum/2)) {
-            if (displayOutput)
+            if (displayOutput != Verbosity.NONE) {
                 System.out.println(theNum + " is semi-prime (" + theNum + " = " + theNum / 2 + " x " + 2 + ")");
+            }
             returnVal = true;
         } else {
             for (int i = 3; i <= Math.sqrt(theNum); i+=2) {
                 if (theNum % i == 0) {
                     if (checkPrime(theNum / i) && checkPrime(i)) {
-                        if (displayOutput)
+                        if (displayOutput != Verbosity.NONE) {
                             System.out.println(theNum + " is semi-prime (" + theNum + " = " + theNum / i + " x " + i + ")");
+                        }
                         returnVal = true;
                     }
                     break;
                 }
             }
         }
-//        if (!returnVal && displayOutput) System.out.println(theNum + " is not semi-prime.");
+        if (!returnVal && displayOutput == Verbosity.VERBOSE) System.out.println(theNum + " is not semi-prime.");
         return returnVal;
     }
 
     private static boolean checkPrime(int theNum) {
-        return checkPrime(theNum, false);
+        return checkPrime(theNum, Verbosity.NONE);
     }
 
-    private static boolean checkPrime(int theNum, boolean displayOutput) {
+    private static boolean checkPrime(int theNum, Verbosity displayOutput) {
         if (theNum == 1) {
-            if (displayOutput) System.out.println("1 is not prime because it only has one factor (1).\n");
+            if (displayOutput != Verbosity.NONE) System.out.println("1 is not prime because it only has one factor (1).\n");
             return false;
         }
         boolean returnVal = true;
@@ -161,7 +153,7 @@ public class PlayingWithPrimes {
         } else {
             returnVal = theNum == 2;
         }
-        if (displayOutput) {
+        if (displayOutput != Verbosity.NONE) {
             if (!returnVal) {
                 System.out.println(theNum + " is not prime. (" + factor + ")\n");
             } else {
@@ -172,19 +164,24 @@ public class PlayingWithPrimes {
         return returnVal;
     }
 
-    private static List<Integer> buildPrimeListSlow(int min, int max) {
+    private static List<Integer> buildPrimeListSlow(int min, int max, Verbosity verbosity) {
         List<Integer> returnVal = new ArrayList<>();
         for (int i = min; i <= max; i++) {
             if (checkPrime(i)) {
                 returnVal.add(i);
             }
         }
+        if (verbosity != Verbosity.NONE) {
+            for (int p : returnVal) {
+                System.out.println(p);
+            }
+        }
         return returnVal;
     }
 
-    private static List<Integer> buildPrimeList(int min, int max) {
+    private static List<Integer> buildPrimeList(int min, int max, Verbosity verbosity) {
         if (min > 2) {
-            return buildPrimeListSlow(min, max);
+            return buildPrimeListSlow(min, max, verbosity);
         }
         List<Integer> returnVal = new ArrayList<>();
         returnVal.add(2);
