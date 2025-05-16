@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.AbstractMap.*;
 import com.danmueller.Verbosity;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class PlayingWithPrimes {
     private static Scanner scan = new Scanner(System.in);
@@ -17,6 +18,7 @@ public class PlayingWithPrimes {
 //        }
         List<Map.Entry<String, Runnable>> menuOptions = new ArrayList<>();
         menuOptions.add(new SimpleImmutableEntry<>("Check if a number is prime.", PlayingWithPrimes::doCheckPrime));
+        menuOptions.add(new SimpleImmutableEntry<>("Prime factorize.", PlayingWithPrimes::doPrimeFactorize));
         menuOptions.add(new SimpleImmutableEntry<>("Find prime numbers between x and y.", PlayingWithPrimes::doBuildPrimeList));
         menuOptions.add(new SimpleImmutableEntry<>("Check if a number is semiprime.", PlayingWithPrimes::doCheckSemiPrime));
         menuOptions.add(new SimpleImmutableEntry<>("Find semiprime numbers between x and y.", PlayingWithPrimes::doBuildSemiPrimeList));
@@ -51,6 +53,35 @@ public class PlayingWithPrimes {
         }
         //        printList(primes);
     }
+
+
+    private static void doPrimeFactorize() {
+        int num = getPositiveInt("Enter a number to prime factorize: ", "  Please enter a positive integer.");
+        primeFactorize(num, Verbosity.STANDARD);
+    }
+
+    private static List<Integer> primeFactorize(int num, Verbosity verbosity) {
+        List<Integer> returnVal = new ArrayList<>();
+        boolean isPrime = true;
+        for (int i = 2; i <= Math.sqrt(num); i++) {
+            if (num % i == 0) {
+                returnVal.add(i);
+                returnVal.addAll(primeFactorize(num/i, Verbosity.NONE));
+                isPrime = false;
+                break;
+            }
+        }
+        if (isPrime) { returnVal.add(num); }
+
+        Collections.sort(returnVal);
+        if (verbosity != Verbosity.NONE) {
+            List<String> sList = returnVal.stream().
+                    map(a -> "" + a).collect(Collectors.toList());
+            System.out.println(String.join(" x ",sList));
+        }
+        return returnVal;
+    }
+
 
     private static int getPositiveInt(String message, String badInputMessage) {
         int returnVal = -1;
